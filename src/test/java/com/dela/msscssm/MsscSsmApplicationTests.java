@@ -1,4 +1,4 @@
-package guru.springframework.msscssm;
+package com.dela.msscssm;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
