@@ -11,7 +11,9 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,12 +32,13 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(newPayment);
     }
 
+    @Transactional
     @Override
     public StateMachine<PaymentState, PaymentEvent> preAuthorize(UUID paymentId) {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.PRE_AUTHORIZE);
-        return null;
+        return sm;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.PRE_AUTHORIZE_APPROVE);
-        return null;
+        return sm;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class PaymentServiceImpl implements PaymentService {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.PRE_AUTHORIZE_DECLINE);
-        return null;
+        return sm;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.AUTHORIZE);
-        return null;
+        return sm;
     }
 
     @Override
@@ -67,7 +70,7 @@ public class PaymentServiceImpl implements PaymentService {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.AUTHORIZE_APPROVE);
-        return null;
+        return sm;
     }
 
     @Override
@@ -75,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
         sendEvent(paymentId, sm, PaymentEvent.AUTHORIZE_DECLINE);
-        return null;
+        return sm;
     }
 
     private StateMachine<PaymentState, PaymentEvent> build(UUID paymentId) {
@@ -99,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
                     });
         });
 
-        sm.stop();
+        sm.start();
 
         return sm;
     }
