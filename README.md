@@ -2,6 +2,7 @@
 
 This repository contains source code examples used to support my on-line courses about the Spring Framework.
 
+IMPORTANT: transistions up to pre_auth_success and pre_auth_error are completed.
 You can learn more about the courses here:
 * [Spring Boot Microservices with Spring Cloud](https://www.udemy.com/spring-boot-microservices-with-spring-cloud-beginner-to-guru/?couponCode=GIT_HUB2)
 * [Spring Framework 5: Beginner to Guru](https://www.udemy.com/course/spring-framework-5-beginner-to-guru/?couponCode=GITHUB_SFGPETCLINIC)

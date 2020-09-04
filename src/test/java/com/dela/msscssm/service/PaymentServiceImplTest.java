@@ -40,7 +40,11 @@ class PaymentServiceImplTest {
 
         Payment preAuthorizedPayment = paymentRepository.findById(payment.getId()).get();
 
-        assertEquals(PaymentState.PRE_AUTH, preAuthorizedPayment.getPaymentState());
-        assertEquals(PaymentState.PRE_AUTH, sm.getState().getId());
+        assertInOneOfTwoStates(preAuthorizedPayment.getPaymentState(), PaymentState.PRE_AUTH_ERROR, PaymentState.PRE_AUTH_ERROR);
+        assertInOneOfTwoStates(sm.getState().getId(), PaymentState.PRE_AUTH_ERROR, PaymentState.PRE_AUTH_ERROR);
+    }
+
+    private static boolean assertInOneOfTwoStates(PaymentState actualState, PaymentState state1, PaymentState state2) {
+        return state1.equals(actualState) || state2.equals(actualState);
     }
 }

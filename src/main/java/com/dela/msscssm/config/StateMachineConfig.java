@@ -2,9 +2,12 @@ package com.dela.msscssm.config;
 
 import com.dela.msscssm.domain.PaymentEvent;
 import com.dela.msscssm.domain.PaymentState;
+import com.dela.msscssm.service.PaymentServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
@@ -14,6 +17,7 @@ import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
 
 import java.util.EnumSet;
+import java.util.Random;
 
 @Slf4j
 @EnableStateMachineFactory
@@ -35,7 +39,15 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
     public void configure(StateMachineTransitionConfigurer<PaymentState, PaymentEvent> transitions) throws Exception {
         transitions
                 .withExternal()
-                    .source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTHORIZE).and()
+                    .source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTHORIZE)
+                    .action(preAuthAction())
+                    .and()
+                .withExternal()
+                    .source(PaymentState.NEW).target(PaymentState.PRE_AUTH_SUCCESS).event(PaymentEvent.PRE_AUTHORIZE_APPROVE)
+                    .and()
+                .withExternal()
+                    .source(PaymentState.NEW).target(PaymentState.PRE_AUTH_ERROR).event(PaymentEvent.PRE_AUTHORIZE_DECLINE)
+                    .and()
                 .withExternal()
                     .source(PaymentState.PRE_AUTH).target(PaymentState.PRE_AUTH_SUCCESS).event(PaymentEvent.PRE_AUTHORIZE_APPROVE).and()
                 .withExternal()
@@ -63,5 +75,28 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
         };
 
         config.withConfiguration().listener(listener);
+    }
+
+    /**
+     * Simulate cases when pre_authorization of credit card is successful or failed,
+     * 80% of time pre_auth completes successfully and 20% of time with failure
+     */
+    public Action<PaymentState, PaymentEvent> preAuthAction(){
+        return context -> {
+            log.debug("PreAuth was called!!!");
+
+            if (new Random().nextInt(10) < 8) {
+                log.debug("Approved");
+                context.getStateMachine().sendEvent(MessageBuilder.withPayload(PaymentEvent.PRE_AUTHORIZE_APPROVE)
+                        .setHeader(PaymentServiceImpl.PAYMENT_ID_HEADER, context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER))
+                        .build());
+
+            } else {
+                log.debug("Declined! No Credit!!!!!!");
+                context.getStateMachine().sendEvent(MessageBuilder.withPayload(PaymentEvent.PRE_AUTHORIZE_DECLINE)
+                        .setHeader(PaymentServiceImpl.PAYMENT_ID_HEADER, context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER))
+                        .build());
+            }
+        };
     }
 }
