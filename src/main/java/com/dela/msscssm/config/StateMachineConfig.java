@@ -13,6 +13,7 @@ import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+import org.springframework.statemachine.guard.Guard;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
 
@@ -41,6 +42,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
                 .withExternal()
                     .source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTHORIZE)
                     .action(preAuthAction())
+                    .guard(paymentIdGuard())
                     .and()
                 .withExternal()
                     .source(PaymentState.NEW).target(PaymentState.PRE_AUTH_SUCCESS).event(PaymentEvent.PRE_AUTHORIZE_APPROVE)
@@ -75,6 +77,10 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
         };
 
         config.withConfiguration().listener(listener);
+    }
+
+    public Guard<PaymentState, PaymentEvent> paymentIdGuard(){
+        return context -> context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER) != null;
     }
 
     /**
